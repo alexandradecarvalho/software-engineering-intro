@@ -2,290 +2,244 @@
 
 
 
-## Maven
+### Docker
 
-Maven is a “build tool”: it's a tool to create *deployable* artifacts form source code. It's also a project management tool, with a project object model, a set of standards, a project lifecycle, a dependency management system and logic to execute each project's lifecycle phases' objectives.
-
-
-
-**How to get it?**
-
-Download [here](https://maven.apache.org/download.cgi). Installation Instructions [here](https://maven.apache.org/install.html).
-
-To make sure everything was done correctly: `mvn --version`
-
-![image-20210207104904590](/home/alexis/snap/typora/33/.config/Typora/typora-user-images/image-20210207104904590.png)
+Docker utilizes containers with a pre-configured virtual environment, in order to provide a deployment without compatibility issues, for example.  
 
 
 
-**Create a Project**
+##### [[1](https://www.youtube.com/watch?v=iqqDU2crIEQ)]**How to get it?**
+
+Download [here](https://docs.docker.com/engine/install/) and more instructions [here](https://docs.docker.com/engine/install/linux-postinstall/).
+
+##### **Cheat Sheet**
+
+![image-20210207211453126](/home/alexis/snap/typora/33/.config/Typora/typora-user-images/image-20210207211453126.png)
+
+##### [[2](https://docs.docker.com/get-started/02_our_app/)] Build and Run your Image
+
+1 - Download [this](https://github.com/docker/getting-started) project.
+
+2 - In the "app" folder, create a file named Dockerfile (without extension!) with the following content:
+
+```dockerfile
+ FROM node:12-alpine				# uses this image as a base 
+ WORKDIR /app						# sets /app folder as our working directory
+ COPY . .							# copies our application
+ RUN yarn install --production		# installs dependencies 
+ CMD ["node", "src/index.js"]		# this is the command it will always run when starting a container from this image
+```
+
+3 - In that same directory, run the following command to build the container image:
 
 ```bash
-mvn archetype:generate -DgroupId=ies.lab1 -DartifactId=team-devenv -DarchetypeArtifactId=maven-archetype-quickstart -DarchetypeVersion=1.0 -DinteractiveMode=false
+ docker build -t getting-started .	
+ # -t allows us to name (tag) our image to "getting-started"
+ # the dot at the end tells that the dockerfile used to build this image is in the current directory
 ```
 
-[[1](https://maven.apache.org/guides/introduction/introduction-to-archetypes.html)] **Archetype** is a toolkit to rapidly create Maven projects through a model/template. 
-
-According to [this guide](https://maven.apache.org/guides/mini/guide-naming-conventions.html), **groupid = ies.lab1** identifies the project in a unique way, and it's recommended that it is the reverse of our domain's name (here, the "reverse" is due to the directory structure that is created). It can contain more or less subgroups (compound names), depending on the project's granularity.
-
-Still according to [this guide](https://maven.apache.org/guides/mini/guide-naming-conventions.html), **artifactid = team-devenv** is the JAR's name, without its version. It can be anything, as long as it's lowercase and doesn't contain any strange symbols.
-
-Finally,  [the guide](https://maven.apache.org/guides/mini/guide-naming-conventions.html) says that the **version** can be any dotted number, representing the deployment version(1.0, 1.1, 1.0.1, ...). 
-
-
-
-The directory structure created by Maven is the following:
+ 4 - Start the container
 
 ```bash
-`--team-devenv
-    |-- pom.xml
-    `-- src
-        |`-- main
-        |   `-- java
-        |       `-- ies
-        |           `-- lab1
-        |               |-- App.java
-         `-- test
-            `-- java
-                `-- ies
-                    `-- lab1
-                        |-- AppTest.java
+docker run -dp 3000:3000 getting-started # -d runs in "detached" mode (bckgrd) and -p maps the ports from 3000 to 3000
 ```
 
-
-
-**Build and Run**
-
-After inserted all dependencies into the POM.xml file, you should write the command  `mvn package` to build the project. Then, you only have to execute it, with the command `mvn exec:java -Dexec.mainClass=ies.lab1.App`.
+5 - Open the browser in [http://localhost:3000.](http://localhost:3000/)
 
 
 
-[[2](https://www.baeldung.com/maven-goals-phases)] **Maven Goals**
+##### Portainer
 
-Maven has 3 lifecycles: 
+Even though Docker can be used through the command line, you can also install a graphic environment such as Portainer (["Deploy Portainer in Docker"](https://documentation.portainer.io/v2.0/deploy/linux/)), to be avaliable at http://localhost:9000/.
 
-* the main one, responsible for project deployment
-* the one responsible for cleaning the project and remove all files generated from previous builds 
-* the one responsible for the project's site documentation
+ 
 
-Each of these lifecycles consists in a sequence of phases - each phase being responsible for a specific task. 
+### [[3](https://docs.docker.com/engine/examples/postgresql_service/)]Example : Creating an Image of PostgreSQL
 
-The default lifecycle is composed by 23 phases (being the largest one - the clean LC has only 3 phases and the site one has 4), but here are the most important ones:
+1 - Create the Dockerfile:
 
-* *validate:* check if all information necessary for the build is available
-* *compile:* compile the source code
-* *test-compile:* compile the test source code
-* *test:* run unit tests
-* *package:* package compiled source code into the distributable format (jar, war, …)
-* *integration-test:* process and deploy the package if needed to run integration tests
-* *install:* install the package to a local repository
-* *deploy:* copy the package to the remote repository
+```dockerfile
+#
+# example Dockerfile for https://docs.docker.com/engine/examples/postgresql_service/
+#
 
-Each phase is a sequence of goals:
+FROM ubuntu:16.04
 
-* *compile phase:* compile goal - to compile the source code
+# Add the PostgreSQL PGP key to verify their Debian packages.
+# It should be the same key as https://www.postgresql.org/media/keys/ACCC4CF8.asc
+RUN apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8
 
-* *test-compile phase:* test-compile goal - to compile the application test sources
+# Add PostgreSQL's repository. It contains the most recent stable release
+#  of PostgreSQL.
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main" > /etc/apt/sources.list.d/pgdg.list
 
-* *test phase:* test goal - to run tests using a suitable unit testing framework
+# Install ``python-software-properties``, ``software-properties-common`` and PostgreSQL 9.3
+#  There are some warnings (in red) that show up during the build. You can hide
+#  them by prefixing each apt-get statement with DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y python-software-properties software-properties-common postgresql-9.3 postgresql-client-9.3 postgresql-contrib-9.3
 
-* *package phase*: jar goal - to create a jar file for the project classes inclusive resources
+# Note: The official Debian and Ubuntu images automatically ``apt-get clean``
+# after each ``apt-get``
 
-* *install phase:* install goal - to install the package into the local repository, for use as a dependency in other projects locally
+# Run the rest of the commands as the ``postgres`` user created by the ``postgres-9.3`` package when it was ``apt-get installed``
+USER postgres
 
-* *deploy phase:* deploy goal - to copy the final package to the remote repository for sharing with other developers and projects
+# Create a PostgreSQL role named ``docker`` with ``docker`` as the password and
+# then create a database `docker` owned by the ``docker`` role.
+# Note: here we use ``&&\`` to run commands one after the other - the ``\``
+#       allows the RUN command to span multiple lines.
+RUN    /etc/init.d/postgresql start &&\
+    psql --command "CREATE USER docker WITH SUPERUSER PASSWORD 'docker';" &&\
+    createdb -O docker docker
 
-  
+# Adjust PostgreSQL configuration so that remote connections to the
+# database are possible.
+RUN echo "host all  all    0.0.0.0/0  md5" >> /etc/postgresql/9.3/main/pg_hba.conf
 
-# Exercise: Meteorology Lookup
+# And add ``listen_addresses`` to ``/etc/postgresql/9.3/main/postgresql.conf``
+RUN echo "listen_addresses='*'" >> /etc/postgresql/9.3/main/postgresql.conf
 
-This exercise consists in a small Java application to invoke an API with meteorologic information.
+# Expose the PostgreSQL port
+EXPOSE 5432
 
-The command `curl http://api.ipma.pt/open-data/forecast/meteorology/cities/daily/1010500.json | json_pp` allows checking the content of the API, like the following excerpt:
+# Add VOLUMEs to allow backup of config, logs and databases
+VOLUME  ["/etc/postgresql", "/var/log/postgresql", "/var/lib/postgresql"]
 
-![image-20210207112944836](/home/alexis/snap/typora/33/.config/Typora/typora-user-images/image-20210207112944836.png)
+# Set the default command to run when starting the container
+CMD ["/usr/lib/postgresql/9.3/bin/postgres", "-D", "/var/lib/postgresql/9.3/main", "-c", "config_file=/etc/postgresql/9.3/main/postgresql.conf"]
+```
 
-
-
-**Project Configuration**
+2 - Build the image from the Dockerfile
 
 ```bash
-mvn archetype:generate -DgroupId=ies.lab1 -DartifactId=MyWeatherRadar -DarchetypeArtifactId=maven-archetype-quickstart -DarchetypeVersion=1.0 -DinteractiveMode=false
+docker build -t eg_postgresql .
 ```
 
-Directory structure:
+3 - Run the container
 
-|      Directory      |            Content            |
-| :-----------------: | :---------------------------: |
-| **`src/main/java`** | Application/Libraries sources |
-| **`src/test/java`** |         Test sources          |
-
-POM.xml file created:
-
-```xml
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    
-  <modelVersion>4.0.0</modelVersion>
-    
-  <groupId>ies.lab1</groupId>
-  <artifactId>MyWeatherRadar</artifactId>
-    
-  <packaging>jar</packaging>
-  <version>1.0-SNAPSHOT</version>
-    
-  <name>MyWeatherRadar</name>
-  <url>http://maven.apache.org</url>
-    
-  <dependencies>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>3.8.1</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
-    
-</project>
+```bash
+docker run --rm -P --name pg_test eg_postgresql
 ```
 
+4 - Connect from you host system
 
-
-Add the developer team's composition, before all the dependencies. In this case, it's just me:
-
-```xml
- <developers>
-        <developer>
-            <id>alexa</id>
-            <name>Alexandra de Carvalho</name>
-            <email>alexandracarvalho@ua.pt</email>
-            <url>http://www.ua.pt</url>
-            <organization>Universidade de Aveiro</organization>
-            <organizationUrl>http://www.ua.pt</organizationUrl>
-            <roles>
-                <role>developer</role>
-            </roles>
-            <timezone>0</timezone>
-        </developer>
-    </developers>
+```bash
+docker ps
+psql -h localhost -p 49153 -d docker -U docker --password
 ```
 
-Also, add a version of the compiler in use(compiler plugin properties, version = 11):
+### [[4](https://docs.docker.com/compose/gettingstarted/)] Docker Compose 
 
-```xml
-<properties>
-	<maven.compiler.source>11</maven.compiler.source>
-	<maven.compiler.target>11</maven.compiler.target>
-</properties>
+1 - Create a new directory
+
+```bash
+mkdir composetest
+cd composetest
 ```
 
+2 - Create a file called app.py with the following content:
 
+```python
+import time
 
-One of the greatest advantages of Maven is its dependency management. To this project, we'll use [Retrofit](https://square.github.io/retrofit/) (to do a request to a REST API REST, in Java) and [Gson](https://github.com/google/gson) (to parse JSON to classes). With Maven, we only need to declare these in the dependencies section of the POM.xml file, as well as their version (it's best to use the most current one):
+import redis
+from flask import Flask
 
-```xml
-<dependency>
-	<groupId>com.squareup.retrofit2</groupId>
-	<artifactId>retrofit</artifactId>
-	<version>2.9.0</version>
-</dependency>
-<dependency>
-	<groupId>com.squareup.retrofit2</groupId>
-	<artifactId>converter-gson</artifactId>
-	<version>2.9.0</version>
-</dependency>
-<dependency>
-      <groupId>com.google.code.gson</groupId>
-      <artifactId>gson</artifactId>
-      <version>2.8.6</version>
-</dependency>
+app = Flask(__name__)
+cache = redis.Redis(host='redis', port=6379)
+
+def get_hit_count():
+    retries = 5
+    while True:
+        try:
+            return cache.incr('hits')
+        except redis.exceptions.ConnectionError as exc:
+            if retries == 0:
+                raise exc
+            retries -= 1
+            time.sleep(0.5)
+
+@app.route('/')
+def hello():
+    count = get_hit_count()
+    return 'Hello World! I have been seen {} times.\n'.format(count)
 ```
 
+3 - Create a file called requirements.txt with the following content:
 
-
-The four necessary base classes for this project are located [here](https://gist.github.com/icoPT/8b378e03244d07e11645a97fa1857d7c) e [here](https://gist.github.com/icoPT/a8cf15730bb201a76b228ef3cace5908).
-
-Once we get our project free of errors, let's build it (`mvn clean package`) and execute it (`mvn exec:java -Dexec.mainClass="ies.lab1.WeatherStarter"`).
-
-
-
-Let's change the source of the city code to a command-line argument, and print the information in a more friendly way:
-
-```java
-public class WeatherStarter {
-    
-    //loggers provide a better alternative to System.out.println https://rules.sonarsource.com/java/tag/bad-practice/RSPEC-106
-    private static final Logger logger = Logger.getLogger(WeatherStarter.class.getName());
-
-    public static void main(String[] args){
-
-        int city_id = 0;
-        try {
-            city_id = Integer.parseInt(args[0]);
-        } catch(NumberFormatException e) {
-            System.out.println("Sorry! Invalid City ID! Shutting down...");
-            exit(1);
-        }
-
-        //get a retrofit instance, loaded with the GSon lib to convert JSON into objects
-        Retrofit retrofit = new Retrofit.Builder().baseUrl("http://api.ipma.pt/open-data/")
-                .addConverterFactory(GsonConverterFactory.create()).build();
-
-        IpmaService service = retrofit.create(IpmaService.class);
-
-        Call<IpmaCityForecast> callSync = service.getForecastForACity(city_id);
-
-        try {
-            Response<IpmaCityForecast> apiResponse = callSync.execute();
-            IpmaCityForecast forecast = apiResponse.body();
-
-            if (forecast != null)
-                System.out.println("max temp for today: " + forecast.getData().listIterator().next().gettMax());
-            else{
-                System.out.println("Sorry! No results for this City ID! Shutting down...");
-                exit(1);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
-}
+```
+flask
+redis
 ```
 
-Once we get our project free of errors, let's build it (`mvn clean package`) and execute it with an argument (`mvn exec:java -Dexec.mainClass="ies.lab1.WeatherStarter" -Dexec.args="1010500"`).
+4 - Create the following Dockerfile:
 
-
-
-**Generte a site**
-
-Command: `mvn site`
-
-If an error occurs, try specifying the plugin version (the last plugin is to also generate the JavaDoc):
-
-```xml
-<build>
-  <plugins>
-
-    <plugin>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-site-plugin</artifactId>
-      <version>3.7.1</version>
-    </plugin>
-
-    <plugin>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-project-info-reports-plugin</artifactId>
-      <version>3.0.0</version>
-    </plugin>
-	
-    <plugin>
-    	<groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.2.0</version>
-    </plugin>
-  </plugins>
-</build>
+```dockerfile
+FROM python:3.7-alpine
+WORKDIR /code
+ENV FLASK_APP=app.py
+ENV FLASK_RUN_HOST=0.0.0.0
+RUN apk add --no-cache gcc musl-dev linux-headers
+COPY requirements.txt requirements.txt
+RUN pip install -r requirements.txt
+EXPOSE 5000
+COPY . .
+CMD ["flask", "run"]
 ```
 
-When the build succeeds, you can see the result in **/target/site/index.html**.
+5 - Create a file called docker-compose.yml with the following content:
+
+```yaml
+version: "3.9"
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+  redis:
+    image: "redis:alpine"
+```
+
+This file defines both the web and the redis service.
+
+6 - Start the application by running the following command:
+
+```bash
+docker-compose up
+```
+
+7 - Go to http://localhost:5000/ in the browser and refresh the page
+
+8 - In a new terminal, run the following command:
+
+```bash
+docker image ls
+```
+
+9 - To stop the application, run:
+
+```bash
+docker-compose down
+```
+
+10 - To list all docker containers, run:
+
+```bash
+docker container ls –all
+```
+
+Volumes are the preferred mechanism for persisting data generated by and used by Docker containers. While [bind mounts](https://docs.docker.com/storage/bind-mounts/) are dependent on the directory structure and OS of the host machine, volumes are completely managed by Docker. Volumes have several advantages over bind mounts:
+
+- Volumes are easier to back up or migrate than bind mounts.
+- You can manage volumes using Docker CLI commands or the Docker API.
+- Volumes work on both Linux and Windows containers.
+- Volumes can be more safely shared among multiple containers.
+- Volume drivers let you store volumes on remote hosts or cloud providers, to encrypt the contents of volumes, or to add other functionality.
+- New volumes can have their content pre-populated by a container.
+- Volumes on Docker Desktop have much higher performance than bind mounts from Mac and Windows hosts.
+
+In addition, volumes are often a better choice than persisting data in a container’s writable layer, because a volume does not increase the size of the containers using it, and the volume’s contents exist outside the lifecycle of a given container.
+
+![volumes on the Docker host](https://docs.docker.com/storage/images/types-of-mounts-volume.png)
+
+If your container generates non-persistent state data, consider using a [tmpfs mount](https://docs.docker.com/storage/tmpfs/) to avoid storing the data anywhere permanently, and to increase the container’s performance by avoiding writing into the container’s writable layer.
