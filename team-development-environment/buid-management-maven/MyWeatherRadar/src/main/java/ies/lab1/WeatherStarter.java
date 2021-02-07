@@ -15,9 +15,6 @@ import static java.lang.System.exit;
  */
 public class WeatherStarter {
 
-    //loggers provide a better alternative to System.out.println https://rules.sonarsource.com/java/tag/bad-practice/RSPEC-106
-    private static final Logger logger = Logger.getLogger(WeatherStarter.class.getName());
-
     public static void main(String[] args){
 
         int city_id = 0;

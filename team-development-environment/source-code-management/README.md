@@ -57,9 +57,9 @@ To pull changes done by others in git:
 
 ### Logging Exercise: Meteorology Lookup
 
-This exercise consists in taking a small Java application to invoke an API with meteorologic information and adding logging support. For that, we'll use the logging library [Log4j 2](https://www.baeldung.com/java-logging-intro):
+This exercise consists in taking a small Java application to invoke an API with meteorologic information (original here) and adding logging support. For that, we'll use the logging library [Log4j 2](https://www.baeldung.com/java-logging-intro):
 
-```
+```xml
 <dependency>
 	<groupId>org.apache.logging.log4j</groupId>
 	<artifactId>log4j-api</artifactId>
@@ -72,115 +72,42 @@ This exercise consists in taking a small Java application to invoke an API with 
 </dependency>
 ```
 
-**Project Configuration**
-
-```bash
-mvn archetype:generate -DgroupId=ies.lab1 -DartifactId=MyWeatherRadar -DarchetypeArtifactId=maven-archetype-quickstart -DarchetypeVersion=1.0 -DinteractiveMode=false
-```
-
-Directory structure:
-
-|      Directory      |            Content            |
-| :-----------------: | :---------------------------: |
-| **`src/main/java`** | Application/Libraries sources |
-| **`src/test/java`** |         Test sources          |
-
-POM.xml file created:
+If we don't want to use default configuration, we can create our own configuration file, just like the following [log4j2.xml](https://howtodoinjava.com/log4j2/log4j-2-xml-configuration-example/):
 
 ```xml
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    
-  <modelVersion>4.0.0</modelVersion>
-    
-  <groupId>ies.lab1</groupId>
-  <artifactId>MyWeatherRadar</artifactId>
-    
-  <packaging>jar</packaging>
-  <version>1.0-SNAPSHOT</version>
-    
-  <name>MyWeatherRadar</name>
-  <url>http://maven.apache.org</url>
-    
-  <dependencies>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>3.8.1</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
-    
-</project>
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="debug">
+    <Properties>
+        <Property name="basePath">~/Desktop/testIES/team-development-environment/source-code-management</Property>
+    </Properties>
+    <Appenders>
+    <File name="fileLogger" fileName="${basePath}/app-info.log" filePattern="${basePath}/app-info-%d{yyyy-MM-dd}.log">
+        <PatternLayout>
+            <pattern>[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n</pattern>
+        </PatternLayout>
+        <Policies>
+            <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+        </Policies>
+    </File>
+
+</Appenders>
+<Loggers>
+    <Root level="INFO">
+        <appender-ref ref="fileLogger" />
+    </Root>
+</Loggers>
+</Configuration>
 ```
 
+This config creates a file named app-info.log in ~/Desktop/testIES/team-development-environment/source-code-management. The xml config file itself should be in src/main/resources.
 
-
-Add the developer team's composition, before all the dependencies. In this case, it's just me:
-
-```xml
- <developers>
-        <developer>
-            <id>alexa</id>
-            <name>Alexandra de Carvalho</name>
-            <email>alexandracarvalho@ua.pt</email>
-            <url>http://www.ua.pt</url>
-            <organization>Universidade de Aveiro</organization>
-            <organizationUrl>http://www.ua.pt</organizationUrl>
-            <roles>
-                <role>developer</role>
-            </roles>
-            <timezone>0</timezone>
-        </developer>
-    </developers>
-```
-
-Also, add a version of the compiler in use(compiler plugin properties, version = 11):
-
-```xml
-<properties>
-	<maven.compiler.source>11</maven.compiler.source>
-	<maven.compiler.target>11</maven.compiler.target>
-</properties>
-```
-
-
-
-One of the greatest advantages of Maven is its dependency management. To this project, we'll use [Retrofit](https://square.github.io/retrofit/) (to do a request to a REST API REST, in Java) and [Gson](https://github.com/google/gson) (to parse JSON to classes). With Maven, we only need to declare these in the dependencies section of the POM.xml file, as well as their version (it's best to use the most current one):
-
-```xml
-<dependency>
-	<groupId>com.squareup.retrofit2</groupId>
-	<artifactId>retrofit</artifactId>
-	<version>2.9.0</version>
-</dependency>
-<dependency>
-	<groupId>com.squareup.retrofit2</groupId>
-	<artifactId>converter-gson</artifactId>
-	<version>2.9.0</version>
-</dependency>
-<dependency>
-      <groupId>com.google.code.gson</groupId>
-      <artifactId>gson</artifactId>
-      <version>2.8.6</version>
-</dependency>
-```
-
-
-
-The four necessary base classes for this project are located [here](https://gist.github.com/icoPT/8b378e03244d07e11645a97fa1857d7c) e [here](https://gist.github.com/icoPT/a8cf15730bb201a76b228ef3cace5908).
-
-Once we get our project free of errors, let's build it (`mvn clean package`) and execute it (`mvn exec:java -Dexec.mainClass="ies.lab1.WeatherStarter"`).
-
-
-
-Let's change the source of the city code to a command-line argument, and print the information in a more friendly way:
+Applying a logger to our project:
 
 ```java
 public class WeatherStarter {
-    
+
     //loggers provide a better alternative to System.out.println https://rules.sonarsource.com/java/tag/bad-practice/RSPEC-106
-    private static final Logger logger = Logger.getLogger(WeatherStarter.class.getName());
+    private static final Logger logger = LogManager.getLogger(WeatherStarter.class.getName());
 
     public static void main(String[] args){
 
@@ -204,9 +131,12 @@ public class WeatherStarter {
             Response<IpmaCityForecast> apiResponse = callSync.execute();
             IpmaCityForecast forecast = apiResponse.body();
 
-            if (forecast != null)
+            if (forecast != null){
                 System.out.println("max temp for today: " + forecast.getData().listIterator().next().gettMax());
+                logger.debug("valid query");
+            }
             else{
+                logger.debug("No results for city ID");
                 System.out.println("Sorry! No results for this City ID! Shutting down...");
                 exit(1);
             }
@@ -218,39 +148,75 @@ public class WeatherStarter {
 }
 ```
 
-Once we get our project free of errors, let's build it (`mvn clean package`) and execute it with an argument (`mvn exec:java -Dexec.mainClass="ies.lab1.WeatherStarter" -Dexec.args="1010500"`).
+To test our logger, let's change something in the project, like adding support to query not by city id - but by city name (as a result, return the previsions for that city for the next 5 days).
 
+```java
+public class WeatherStarter {
+    private static int cityToID(HashMap<String, Integer> city_codes, String city_name){
+        for(String city : city_codes.keySet())
+            if(city.equals(city_name))
+                return city_codes.get(city);
 
+        return 0;
+    }
 
-**Generte a site**
+    //loggers provide a better alternative to System.out.println https://rules.sonarsource.com/java/tag/bad-practice/RSPEC-106
+    private static final Logger logger = LogManager.getLogger(WeatherStarter.class.getName());
 
-Command: `mvn site`
+    public static void main(String[] args){
+        HashMap<String, Integer> city_codes = new HashMap<>();
+        city_codes.put("Aveiro",1010500);
+        city_codes.put("Beja",1020500);
+        city_codes.put("Braga",1030300);
+        city_codes.put("Bragança",1040200);
+        city_codes.put("Castelo Branco",1050200);
+        city_codes.put("Coimbra",1060300);
+        city_codes.put("Évora",1070500);
+        city_codes.put("Faro",1080500);
+        city_codes.put("Guarda",1090700);
+        city_codes.put("Leiria",1100900);
+        city_codes.put("Lisboa",1110600);
+        city_codes.put("Portalegre",1121400);
+        city_codes.put("Porto",1131200);
+        city_codes.put("Santarém",1141600);
+        city_codes.put("Setúbal",1151200);
+        city_codes.put("Viana do Castelo",1160900);
+        city_codes.put("Vila Real",1171400);
+        city_codes.put("Viseu",1182300);
+        city_codes.put("Funchal",2310300);
+        city_codes.put("Porto Santo",2320100);
+        city_codes.put("Vila do Porto",3410100);
+        city_codes.put("Ponta Delgada",3420300);
+        city_codes.put("Angra do Heroísmo",3430100);
+        city_codes.put("Santa Cruz da Graciosa",3440100);
+        city_codes.put("Velas",3450200);
+        city_codes.put("Madalena",3460200);
+        city_codes.put("Horta",3470100);
+        city_codes.put("Santa Cruz das Flores",3480200);
+        city_codes.put("Vila do Corvo",3490100);
 
-If an error occurs, try specifying the plugin version (the last plugin is to also generate the JavaDoc):
+        int city_id = 0;
 
-```xml
-<build>
-  <plugins>
+        try {
+            city_id = Integer.parseInt(args[0]);
+        } catch(NumberFormatException e) {
+            logger.debug("Passed a city name");
+            city_id = cityToID(city_codes, args[0]);
+        }
+        (...)
+            if (forecast != null){
+                System.out.println("max temp for today: " + forecast.getData().listIterator().next().gettMax());
+                logger.debug("valid query");
+            }
+            else{
+                logger.debug("No results for city ID");
+                System.out.println("Sorry! No results for this City ID! Shutting down...");
+                exit(1);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-    <plugin>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-site-plugin</artifactId>
-      <version>3.7.1</version>
-    </plugin>
-
-    <plugin>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-project-info-reports-plugin</artifactId>
-      <version>3.0.0</version>
-    </plugin>
-	
-    <plugin>
-    	<groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.2.0</version>
-    </plugin>
-  </plugins>
-</build>
+    }
+}
 ```
-
-When the build succeeds, you can see the result in **/target/site/index.html**.

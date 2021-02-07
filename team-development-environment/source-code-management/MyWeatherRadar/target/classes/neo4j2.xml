@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="debug">
+    <Properties>
+        <Property name="basePath">~/Desktop/testIES/team-development-environment/source-code-management</Property>
+    </Properties>
+    <Appenders>
+    <File name="fileLogger" fileName="${basePath}/app-info.log" filePattern="${basePath}/app-info-%d{yyyy-MM-dd}.log">
+        <PatternLayout>
+            <pattern>[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %c{1} - %msg%n</pattern>
+        </PatternLayout>
+        <Policies>
+            <TimeBasedTriggeringPolicy interval="1" modulate="true" />
+        </Policies>
+    </File>
+
+</Appenders>
+<Loggers>
+    <Root level="INFO">
+        <appender-ref ref="fileLogger" />
+    </Root>
+</Loggers>
+</Configuration>
