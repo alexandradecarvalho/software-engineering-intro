@@ -14,7 +14,7 @@ Download [here](https://maven.apache.org/download.cgi). Installation Instruction
 
 To make sure everything was done correctly: `mvn --version`
 
-![image-20210207104904590](/home/alexis/snap/typora/33/.config/Typora/typora-user-images/image-20210207104904590.png)
+![image-20210207104904590](image-20210207104904590.png)
 
 
 
