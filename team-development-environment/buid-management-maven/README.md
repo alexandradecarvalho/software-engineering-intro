@@ -213,9 +213,6 @@ Let's change the source of the city code to a command-line argument, and print t
 
 ```java
 public class WeatherStarter {
-    
-    //loggers provide a better alternative to System.out.println https://rules.sonarsource.com/java/tag/bad-practice/RSPEC-106
-    private static final Logger logger = Logger.getLogger(WeatherStarter.class.getName());
 
     public static void main(String[] args){
 
