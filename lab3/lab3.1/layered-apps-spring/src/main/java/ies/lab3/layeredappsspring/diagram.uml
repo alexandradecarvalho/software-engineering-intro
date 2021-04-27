@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement />
+  <nodes>
+    <node x="245.0" y="150.0">ies.lab3.layeredappsspring.EmployeeController</node>
+    <node x="0.0" y="150.0">ies.lab3.layeredappsspring.OrderModelAssembler</node>
+    <node x="269.0" y="75.0">ies.lab3.layeredappsspring.EmployeeModelAssembler</node>
+    <node x="189.0" y="375.0">ies.lab3.layeredappsspring.Employee</node>
+    <node x="0.0" y="225.0">ies.lab3.layeredappsspring.EmployeeRepository</node>
+    <node x="293.0" y="0.0">ies.lab3.layeredappsspring.OrderNotFoundException</node>
+    <node x="0.0" y="0.0">ies.lab3.layeredappsspring.EmployeeNotFoundException</node>
+    <node x="0.0" y="375.0">ies.lab3.layeredappsspring.LoadDatabase</node>
+    <node x="0.0" y="450.0">ies.lab3.layeredappsspring.Order</node>
+    <node x="0.0" y="75.0">ies.lab3.layeredappsspring.EmployeeNotFoundAdvice</node>
+    <node x="0.0" y="300.0">ies.lab3.layeredappsspring.OrderController</node>
+    <node x="346.0" y="375.0">ies.lab3.layeredappsspring.Status</node>
+    <node x="213.0" y="300.0">ies.lab3.layeredappsspring.OrderRepository</node>
+    <node x="237.0" y="225.0">ies.lab3.layeredappsspring.PayrollApplication</node>
+  </nodes>
+  <notes />
+  <edges />
+  <settings layout="Hierarchic Group" zoom="1.0" x="749.0" y="111.5" />
+  <SelectedNodes />
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

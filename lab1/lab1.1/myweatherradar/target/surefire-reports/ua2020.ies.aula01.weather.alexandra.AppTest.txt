@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: ua2020.ies.aula01.weather.alexandra.AppTest
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.025 s - in ua2020.ies.aula01.weather.alexandra.AppTest
